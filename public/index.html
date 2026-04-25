@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar MP — Cordero Asociados</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inconsolata:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #f7f6f3;
+  --paper: #ffffff;
+  --ink: #1e1e1c;
+  --ink-mid: #5a5a56;
+  --ink-light: #9a9a94;
+  --rule: #e4e2dc;
+  --rule-light: #f0ede8;
+  --blue: #1a3a6b;
+  --blue-light: #e8eef8;
+  --blue-mid: #2a5a9a;
+  --green: #1a5c38;
+  --green-light: #eaf5f0;
+  --amber: #7a4800;
+  --amber-light: #fef6e8;
+  --red: #7a1a1a;
+  --red-light: #faeaea;
+  --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background: var(--bg); color: var(--ink); font-family: 'Syne', sans-serif; min-height: 100vh; }
+
+/* LOGIN */
+#loginScreen {
+  position: fixed; inset: 0;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+.login-card {
+  background: var(--paper);
+  width: 360px;
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.login-top { background: var(--blue); padding: 32px; text-align: center; }
+.login-top .brand { font-weight: 800; font-size: 22px; letter-spacing: 4px; color: #fff; text-transform: uppercase; }
+.login-top .brand-sub { font-family: 'Inconsolata', monospace; font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 2px; margin-top: 6px; }
+.login-body { padding: 32px; }
+.login-label { font-family: 'Inconsolata', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-mid); display: block; margin-bottom: 8px; }
+.login-input { width: 100%; padding: 12px 14px; font-family: 'Inconsolata', monospace; font-size: 18px; letter-spacing: 4px; background: var(--bg); border: 1.5px solid var(--rule); border-radius: 4px; color: var(--ink); margin-bottom: 20px; transition: border-color 0.2s; }
+.login-input:focus { outline: none; border-color: var(--blue-mid); }
+.login-input.error { border-color: var(--red); animation: shake 0.3s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.login-btn { width: 100%; padding: 13px; background: var(--blue); color: #fff; border: none; border-radius: 4px; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.15s; }
+.login-btn:hover { background: var(--blue-mid); }
+.login-error { margin-top: 12px; text-align: center; font-family: 'Inconsolata', monospace; font-size: 12px; color: var(--red); display: none; }
+
+/* HEADER */
+header { background: var(--blue); height: 58px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.h-brand { display: flex; align-items: baseline; gap: 14px; }
+.h-logo { font-weight: 800; font-size: 16px; letter-spacing: 4px; color: #fff; text-transform: uppercase; }
+.h-sub { font-family: 'Inconsolata', monospace; font-size: 11px; color: rgba(255,255,255,0.38); letter-spacing: 1px; }
+.h-stats { display: flex; align-items: center; gap: 24px; }
+.h-stat { text-align: right; }
+.h-stat-n { font-weight: 700; font-size: 18px; color: #fff; line-height: 1; }
+.h-stat-l { font-family: 'Inconsolata', monospace; font-size: 9px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; }
+.h-sep { width: 1px; height: 28px; background: rgba(255,255,255,0.15); }
+.h-updated { font-family: 'Inconsolata', monospace; font-size: 10px; color: rgba(255,255,255,0.3); }
+
+/* FILTERS */
+.filters { background: var(--paper); border-bottom: 1px solid var(--rule); padding: 10px 28px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fl { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-light); }
+.chip { font-family: 'Inconsolata', monospace; font-size: 11px; padding: 5px 14px; border-radius: 20px; border: 1.5px solid var(--rule); color: var(--ink-mid); cursor: pointer; transition: all 0.15s; background: transparent; white-space: nowrap; user-select: none; }
+.chip:hover { border-color: var(--blue-mid); color: var(--blue); }
+.chip.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+.chip.on-g { background: var(--green); color: #fff; border-color: var(--green); }
+.chip.on-a { background: var(--amber); color: #fff; border-color: var(--amber); }
+.fsep { width: 1px; height: 22px; background: var(--rule); }
+.search { font-family: 'Inconsolata', monospace; font-size: 12px; padding: 6px 14px; background: var(--bg); border: 1.5px solid var(--rule); border-radius: 4px; color: var(--ink); width: 220px; transition: border-color 0.2s; }
+.search:focus { outline: none; border-color: var(--blue-mid); }
+.search::placeholder { color: var(--ink-light); }
+.btn-refresh { font-family: 'Inconsolata', monospace; font-size: 11px; letter-spacing: 1px; padding: 6px 14px; background: var(--blue-light); border: 1.5px solid #c0d0e8; border-radius: 4px; color: var(--blue); cursor: pointer; transition: all 0.15s; margin-left: auto; }
+.btn-refresh:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* COMISIONES */
+.com-panel { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; margin: 20px 28px 0; padding: 18px 24px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
+.com-item .com-label { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-light); margin-bottom: 4px; }
+.com-item .com-val { font-size: 22px; font-weight: 700; color: var(--green); }
+.com-item .com-val.blue { color: var(--blue-mid); }
+.com-sep { width: 1px; height: 40px; background: var(--rule); }
+
+/* TABLE */
+.table-wrap { padding: 20px 28px 40px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--paper); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); }
+thead tr { background: var(--blue); }
+thead th { font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.65); padding: 12px 14px; text-align: left; font-weight: 500; white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--rule-light); transition: background 0.12s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #f0f4fb; }
+tbody td { padding: 13px 14px; font-size: 13px; vertical-align: middle; }
+
+.td-code { font-family: 'Inconsolata', monospace; font-size: 11px; color: var(--ink-mid); white-space: nowrap; }
+.td-name { font-weight: 600; color: var(--ink); max-width: 260px; line-height: 1.4; }
+.td-name a { color: inherit; text-decoration: none; }
+.td-name a:hover { color: var(--blue-mid); text-decoration: underline; }
+.td-org { font-size: 12px; color: var(--ink-mid); max-width: 170px; }
+.td-city { font-family: 'Inconsolata', monospace; font-size: 11px; color: var(--ink-mid); white-space: nowrap; }
+.city-pref { color: var(--blue-mid); font-size: 10px; }
+.td-monto { font-family: 'Inconsolata', monospace; font-size: 12px; color: var(--ink); white-space: nowrap; font-weight: 600; }
+.td-fecha { font-family: 'Inconsolata', monospace; font-size: 11px; color: var(--ink-mid); white-space: nowrap; }
+
+.dias-b { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 10px; margin-top: 3px; font-family: 'Inconsolata', monospace; }
+.dias-ok { background: var(--green-light); color: var(--green); }
+.dias-w { background: var(--amber-light); color: var(--amber); }
+.dias-urg { background: var(--red-light); color: var(--red); font-weight: bold; }
+
+.rel-b { display: inline-flex; align-items: center; font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 1px; padding: 3px 10px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+.rel-alta { background: var(--green-light); color: var(--green); }
+.rel-media { background: var(--blue-light); color: var(--blue-mid); }
+.rel-baja { background: var(--rule-light); color: var(--ink-light); }
+
+.est-b { display: inline-block; font-family: 'Inconsolata', monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; white-space: nowrap; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; }
+.est-none { background: var(--rule-light); color: var(--ink-light); border-color: var(--rule); }
+.est-proceso { background: var(--blue-light); color: var(--blue); border-color: #c0d0e8; }
+.est-docs { background: var(--amber-light); color: var(--amber); border-color: #f0d090; }
+.est-adj { background: var(--green-light); color: var(--green); border-color: #a0d4b8; }
+.est-no { background: var(--red-light); color: var(--red); border-color: #e0a8a8; }
+
+.td-actions { white-space: nowrap; }
+.btn-p { font-family: 'Inconsolata', monospace; font-size: 11px; padding: 6px 13px; border-radius: 4px; cursor: pointer; font-weight: 600; letter-spacing: 0.5px; border: 1.5px solid; transition: all 0.15s; }
+.btn-si { background: var(--green-light); color: var(--green); border-color: #a0d4b8; }
+.btn-si:hover { background: var(--green); color: #fff; }
+.btn-no { background: var(--rule-light); color: var(--ink-light); border-color: var(--rule); margin-left: 4px; }
+.btn-no:hover { background: var(--red-light); color: var(--red); border-color: #e0a8a8; }
+.en-gestion { font-family: 'Inconsolata', monospace; font-size: 10px; color: var(--ink-light); }
+
+/* ESTADO DROPDOWN */
+.est-menu { position: fixed; background: var(--paper); border: 1.5px solid var(--rule); border-radius: 6px; box-shadow: var(--shadow); z-index: 500; min-width: 180px; display: none; overflow: hidden; }
+.est-menu.show { display: block; }
+.est-mi { padding: 10px 16px; font-family: 'Inconsolata', monospace; font-size: 12px; cursor: pointer; transition: background 0.1s; }
+.est-mi:hover { background: var(--blue-light); }
+.est-mi.sep { border-top: 1px solid var(--rule); color: var(--ink-light); }
+
+/* EMPTY / LOADING */
+.empty-row td { text-align: center; padding: 60px; color: var(--ink-light); }
+.loading-row td { text-align: center; padding: 48px; }
+.spin-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--blue-mid); font-family: 'Inconsolata', monospace; font-size: 13px; }
+.spinner { width: 18px; height: 18px; border: 2px solid var(--blue-light); border-top-color: var(--blue-mid); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--blue); color: #fff; padding: 12px 20px; border-radius: 6px; font-family: 'Inconsolata', monospace; font-size: 13px; z-index: 9000; transform: translateY(80px); opacity: 0; transition: all 0.3s; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.ok { background: var(--green); }
+.toast.err { background: #8b3030; }
+
+@media (max-width: 900px) {
+  header { padding: 0 16px; }
+  .h-sub, .h-sep:nth-child(n+3), .h-updated { display: none; }
+  .filters { padding: 10px 16px; }
+  .table-wrap { padding: 12px 12px 40px; }
+  .com-panel { margin: 12px 12px 0; gap: 16px; }
+  thead th:nth-child(n+4):not(:nth-child(7)):not(:nth-child(8)):not(:nth-child(9)) { display: none; }
+  tbody td:nth-child(n+4):not(:nth-child(7)):not(:nth-child(8)):not(:nth-child(9)) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-top">
+      <div class="brand">Radar MP</div>
+      <div class="brand-sub">Cordero Asociados · Mercado Público</div>
+    </div>
+    <div class="login-body">
+      <label class="login-label">Clave de acceso</label>
+      <input type="password" class="login-input" id="claveInput" placeholder="••••••••••"
+        onkeydown="if(event.key==='Enter') entrar()">
+      <button class="login-btn" onclick="entrar()">Entrar al sistema</button>
+      <div class="login-error" id="loginError">Clave incorrecta. Intenta nuevamente.</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+  <header>
+    <div class="h-brand">
+      <span class="h-logo">Radar MP</span>
+      <span class="h-sub">Cordero Asociados</span>
+    </div>
+    <div class="h-stats">
+      <div class="h-stat"><div class="h-stat-n" id="sTotal">—</div><div class="h-stat-l">Total</div></div>
+      <div class="h-sep"></div>
+      <div class="h-stat"><div class="h-stat-n" id="sAlta" style="color:#90e0b0">—</div><div class="h-stat-l">Alta</div></div>
+      <div class="h-sep"></div>
+      <div class="h-stat"><div class="h-stat-n" id="sMedia" style="color:#a0c0f0">—</div><div class="h-stat-l">Media</div></div>
+      <div class="h-sep"></div>
+      <div class="h-stat"><div class="h-stat-n" id="sPost" style="color:#f0d090">—</div><div class="h-stat-l">Postulando</div></div>
+      <div class="h-sep"></div>
+      <span class="h-updated" id="hUpdated">—</span>
+    </div>
+  </header>
+
+  <div class="filters">
+    <span class="fl">Relevancia</span>
+    <div class="chip on" id="chip-rel-todas" onclick="setRel('todas',this)">Todas</div>
+    <div class="chip" id="chip-rel-alta" onclick="setRel('alta',this)">▲ Alta</div>
+    <div class="chip" id="chip-rel-media" onclick="setRel('media',this)">◆ Media</div>
+    <div class="chip" id="chip-rel-baja" onclick="setRel('baja',this)">◇ Baja</div>
+    <div class="fsep"></div>
+    <span class="fl">Estado</span>
+    <div class="chip" id="chip-est-proceso" onclick="toggleEst('proceso',this)">En proceso</div>
+    <div class="chip" id="chip-est-docs" onclick="toggleEst('docs',this)">Docs enviados</div>
+    <div class="chip" id="chip-est-adj" onclick="toggleEst('adj',this)">Adjudicada</div>
+    <div class="chip" id="chip-est-no" onclick="toggleEst('no',this)">No adjudicada</div>
+    <div class="fsep"></div>
+    <input type="text" class="search" id="searchInput" placeholder="Buscar nombre u organismo…" oninput="renderTable()">
+    <button class="btn-refresh" onclick="cargarLicitaciones()">↺ Actualizar</button>
+  </div>
+
+  <div class="com-panel">
+    <div class="com-item"><div class="com-label">Proyectos adjudicados</div><div class="com-val" id="cAdj">0</div></div>
+    <div class="com-sep"></div>
+    <div class="com-item"><div class="com-label">Comisiones generadas (7%)</div><div class="com-val" id="cCom">$0</div></div>
+    <div class="com-sep"></div>
+    <div class="com-item"><div class="com-label">En postulación activa</div><div class="com-val blue" id="cProc">0</div></div>
+    <div class="com-sep"></div>
+    <div class="com-item"><div class="com-label">Monto potencial en proceso</div><div class="com-val blue" id="cPot">$0</div></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre licitación</th>
+          <th>Organismo</th>
+          <th>Ciudad</th>
+          <th>Monto estimado</th>
+          <th>Cierre</th>
+          <th>Relevancia IA</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr class="loading-row"><td colspan="9">
+          <div class="spin-wrap"><div class="spinner"></div>Cargando licitaciones…</div>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ESTADO DROPDOWN -->
+<div class="est-menu" id="estMenu">
+  <div class="est-mi" onclick="setEstado('proceso')">🔵 En proceso</div>
+  <div class="est-mi" onclick="setEstado('docs')">🟡 Docs enviados</div>
+  <div class="est-mi" onclick="setEstado('adj')">🟢 Adjudicada</div>
+  <div class="est-mi" onclick="setEstado('no')">🔴 No adjudicada</div>
+  <div class="est-mi sep" onclick="setEstado('')">— Sin estado</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CLAVE = 'RadarMP2026';
+const API_BASE = '/api';
+const ES_DEMO = !window.location.hostname.includes('vercel') && !window.location.hostname.includes('radar-mp');
+
+let licitaciones = [];
+let estados = JSON.parse(localStorage.getItem('mp_estados') || '{}');
+let filtRel = 'todas';
+let filtEst = null;
+let menuTarget = null;
+
+// ── LOGIN ──────────────────────────────────
+function entrar() {
+  if (document.getElementById('claveInput').value === CLAVE) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    sessionStorage.setItem('mp_ok', '1');
+    cargarLicitaciones();
+  } else {
+    const i = document.getElementById('claveInput');
+    i.classList.add('error');
+    document.getElementById('loginError').style.display = 'block';
+    setTimeout(() => i.classList.remove('error'), 400);
+  }
+}
+
+if (sessionStorage.getItem('mp_ok') === '1') {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+// ── DEMO DATA ──────────────────────────────
+function demoData() {
+  return [
+    { id:1, codigo:'2278-9-L126', nombre:'Diseño Sistema Integrado de Gestión ISO 9001 + ISO 14001 + ISO 45001', organismo:'Puerto San Vicente', ciudad:'Talcahuano', region:'Biobío', monto:22000000, fechaCierre:'2026-05-08T17:00:00', score:{ nivel:'alta', score:35, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:2, codigo:'1234-5-LE26', nombre:'Capacitación en Prevención de Riesgos y Seguridad Ocupacional para funcionarios', organismo:'SEREMI de Salud Biobío', ciudad:'Concepción', region:'Biobío', monto:8500000, fechaCierre:'2026-05-12T17:00:00', score:{ nivel:'alta', score:30, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:3, codigo:'3642-12-L126', nombre:'Consultoría implementación Sistema de Gestión de Calidad ISO 9001:2015', organismo:'Municipalidad de Los Ángeles', ciudad:'Los Ángeles', region:'Biobío', monto:18000000, fechaCierre:'2026-05-15T18:00:00', score:{ nivel:'alta', score:25, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:4, codigo:'3301-4-L126', nombre:'Capacitación ISO 37001 Antisoborno para directivos y ejecutivos', organismo:'Superintendencia de Educación', ciudad:'Santiago', region:'Metropolitana', monto:9500000, fechaCierre:'2026-05-20T17:00:00', score:{ nivel:'alta', score:24, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:5, codigo:'8891-3-LP26', nombre:'Auditoría Interna Sistema de Gestión Ambiental ISO 14001', organismo:'CONAF Región del Biobío', ciudad:'Concepción', region:'Biobío', monto:12000000, fechaCierre:'2026-06-01T17:00:00', score:{ nivel:'alta', score:28, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:6, codigo:'5521-8-L126', nombre:'Asesoría en Gestión de Personas y Clima Laboral Organizacional', organismo:'Hospital Regional de Concepción', ciudad:'Concepción', region:'Biobío', monto:15000000, fechaCierre:'2026-05-28T16:00:00', score:{ nivel:'alta', score:22, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:7, codigo:'9012-7-L126', nombre:'Consultoría levantamiento y mejora continua de procesos operacionales', organismo:'ENAP Refinería Biobío', ciudad:'Talcahuano', region:'Biobío', monto:18500000, fechaCierre:'2026-05-25T17:00:00', score:{ nivel:'alta', score:20, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:8, codigo:'5534-6-L126', nombre:'Implementación Sistema de Gestión de Seguridad de la Información ISO 27001', organismo:'Gobierno Regional de Aysén', ciudad:'Coyhaique', region:'Aysén', monto:16000000, fechaCierre:'2026-06-20T17:00:00', score:{ nivel:'alta', score:26, esCiudadPreferida:false }, url:'https://www.mercadopublico.cl' },
+    { id:9, codigo:'1190-5-L126', nombre:'Programa formación en gestión documental y digitalización de procesos', organismo:'Municipalidad de Talcahuano', ciudad:'Talcahuano', region:'Biobío', monto:6000000, fechaCierre:'2026-06-05T17:00:00', score:{ nivel:'media', score:14, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:10, codigo:'4412-2-LE26', nombre:'Diagnóstico organizacional y plan estratégico institucional', organismo:'SENCE Biobío', ciudad:'Concepción', region:'Biobío', monto:11000000, fechaCierre:'2026-05-30T17:00:00', score:{ nivel:'media', score:12, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:11, codigo:'7740-1-LE26', nombre:'Suministro materiales de construcción y fierros para obras', organismo:'Ministerio de Obras Públicas', ciudad:'Santiago', region:'Metropolitana', monto:45000000, fechaCierre:'2026-05-10T12:00:00', score:{ nivel:'baja', score:0, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+    { id:12, codigo:'8823-3-LP26', nombre:'Servicio de alimentación casino institucional para funcionarios', organismo:'SENAME', ciudad:'Santiago', region:'Metropolitana', monto:28000000, fechaCierre:'2026-05-20T12:00:00', score:{ nivel:'baja', score:0, esCiudadPreferida:true }, url:'https://www.mercadopublico.cl' },
+  ];
+}
+
+// ── CARGAR ──────────────────────────────────
+async function cargarLicitaciones() {
+  document.getElementById('tableBody').innerHTML = `<tr class="loading-row"><td colspan="9"><div class="spin-wrap"><div class="spinner"></div>Cargando licitaciones…</div></td></tr>`;
+
+  if (ES_DEMO) {
+    await new Promise(r => setTimeout(r, 700));
+    licitaciones = demoData();
+    document.getElementById('hUpdated').textContent = 'Demo · ' + hora();
+    renderTable();
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API_BASE}/licitaciones?estado=activas`);
+    const d = await r.json();
+    if (d.ok) licitaciones = d.licitaciones;
+    document.getElementById('hUpdated').textContent = 'Actualizado ' + hora();
+  } catch(e) {
+    licitaciones = demoData();
+    toast('Sin conexión a API — mostrando datos demo', 'err');
+  }
+  renderTable();
+}
+
+// ── RENDER ──────────────────────────────────
+function hora() { return new Date().toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'}); }
+
+function fmonto(m) {
+  if (!m) return '<span style="color:var(--ink-light);font-size:11px">No publicado</span>';
+  const n = Number(m);
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  return '$' + n.toLocaleString('es-CL');
+}
+
+function ffecha(f) {
+  if (!f) return '—';
+  try {
+    const d = new Date(f);
+    const dias = Math.ceil((d - new Date()) / 86400000);
+    const s = d.toLocaleDateString('es-CL', {day:'2-digit', month:'2-digit'});
+    if (dias < 0) return `<span style="color:var(--ink-light)">${s}</span>`;
+    if (dias <= 3) return `${s}<br><span class="dias-b dias-urg">¡${dias}d!</span>`;
+    if (dias <= 7) return `${s}<br><span class="dias-b dias-w">${dias} días</span>`;
+    return `${s}<br><span class="dias-b dias-ok">${dias}d</span>`;
+  } catch { return f; }
+}
+
+const EST = {
+  '': { l:'— Sin definir', c:'est-none' },
+  proceso: { l:'🔵 En proceso', c:'est-proceso' },
+  docs: { l:'🟡 Docs enviados', c:'est-docs' },
+  adj: { l:'🟢 Adjudicada', c:'est-adj' },
+  no: { l:'🔴 No adjudicada', c:'est-no' },
+};
+
+function getFiltradas() {
+  const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  return licitaciones.filter(l => {
+    if (filtRel !== 'todas' && l.score.nivel !== filtRel) return false;
+    if (filtEst && (estados[l.id] || '') !== filtEst) return false;
+    if (q && !l.nombre.toLowerCase().includes(q) && !l.organismo.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderTable() {
+  // Stats header
+  const alta = licitaciones.filter(l => l.score.nivel === 'alta').length;
+  const media = licitaciones.filter(l => l.score.nivel === 'media').length;
+  const postulando = licitaciones.filter(l => ['proceso','docs'].includes(estados[l.id])).length;
+  document.getElementById('sTotal').textContent = licitaciones.length;
+  document.getElementById('sAlta').textContent = alta;
+  document.getElementById('sMedia').textContent = media;
+  document.getElementById('sPost').textContent = postulando;
+
+  // Comisiones
+  const adjList = licitaciones.filter(l => estados[l.id] === 'adj');
+  const totalAdj = adjList.reduce((s,l) => s + (l.monto||0), 0);
+  const procList = licitaciones.filter(l => ['proceso','docs'].includes(estados[l.id]));
+  const totalProc = procList.reduce((s,l) => s + (l.monto||0), 0);
+  document.getElementById('cAdj').textContent = adjList.length;
+  document.getElementById('cCom').textContent = totalAdj > 0 ? '$' + Math.round(totalAdj*0.07).toLocaleString('es-CL') : '$0';
+  document.getElementById('cProc').textContent = procList.length;
+  document.getElementById('cPot').textContent = totalProc > 0 ? '$' + totalProc.toLocaleString('es-CL') : '$0';
+
+  const data = getFiltradas();
+  const tbody = document.getElementById('tableBody');
+
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9" style="text-align:center;padding:60px;color:var(--ink-light)"><div style="font-size:36px;margin-bottom:12px;opacity:0.3">🔍</div><div style="font-family:'Inconsolata',monospace;font-size:13px">Sin licitaciones con estos filtros</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(l => {
+    const est = estados[l.id] || '';
+    const estCfg = EST[est] || EST[''];
+    const rel = l.score.nivel;
+    const relCls = rel === 'alta' ? 'rel-alta' : rel === 'media' ? 'rel-media' : 'rel-baja';
+    const relLbl = rel === 'alta' ? '▲ ALTA' : rel === 'media' ? '◆ MEDIA' : '◇ BAJA';
+    const pref = l.score.esCiudadPreferida;
+    const yaGest = ['proceso','docs','adj','no'].includes(est);
+
+    return `<tr>
+      <td class="td-code">${l.codigo}</td>
+      <td class="td-name"><a href="${l.url}" target="_blank" title="${l.nombre}">${l.nombre.length > 65 ? l.nombre.substring(0,62)+'…' : l.nombre}</a></td>
+      <td class="td-org">${l.organismo}</td>
+      <td class="td-city">${l.ciudad}${pref ? ' <span class="city-pref" title="Ciudad prioritaria">★</span>' : ''}</td>
+      <td class="td-monto">${fmonto(l.monto)}</td>
+      <td class="td-fecha">${ffecha(l.fechaCierre)}</td>
+      <td><span class="rel-b ${relCls}">${relLbl}</span></td>
+      <td><span class="est-b ${estCfg.c}" onclick="abrirMenu(event,${l.id})">${estCfg.l}</span></td>
+      <td class="td-actions">
+        ${!yaGest
+          ? `<button class="btn-p btn-si" onclick="postular(${l.id})">✓ Postular</button><button class="btn-p btn-no" onclick="descartar(${l.id})" title="Descartar">✕</button>`
+          : `<span class="en-gestion">En gestión</span>`}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── ESTADO MENU ──────────────────────────────
+function abrirMenu(e, id) {
+  e.stopPropagation();
+  menuTarget = id;
+  const m = document.getElementById('estMenu');
+  m.style.left = Math.min(e.pageX, window.innerWidth - 200) + 'px';
+  m.style.top = e.pageY + 8 + 'px';
+  m.classList.add('show');
+}
+
+function setEstado(val) {
+  if (menuTarget !== null) {
+    estados[menuTarget] = val;
+    localStorage.setItem('mp_estados', JSON.stringify(estados));
+    renderTable();
+  }
+  document.getElementById('estMenu').classList.remove('show');
+  menuTarget = null;
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('estMenu')?.classList.remove('show');
+  menuTarget = null;
+});
+
+// ── POSTULAR ──────────────────────────────────
+async function postular(id) {
+  const l = licitaciones.find(x => x.id === id);
+  if (!l) return;
+
+  estados[id] = 'proceso';
+  localStorage.setItem('mp_estados', JSON.stringify(estados));
+  renderTable();
+  toast('Enviando emails…');
+
+  if (!ES_DEMO) {
+    try {
+      await fetch(`${API_BASE}/postular`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ licit: l, accion: 'POSTULAR', marcadoPor: 'Dashboard' })
+      });
+      toast('✓ Emails enviados — Cristián y colaborador notificados', 'ok');
+    } catch(e) {
+      toast('Error al enviar emails', 'err');
+    }
+  } else {
+    setTimeout(() => toast('✓ [Demo] Emails enviados a Cristián y colaborador', 'ok'), 800);
+  }
+}
+
+function descartar(id) {
+  estados[id] = 'no';
+  localStorage.setItem('mp_estados', JSON.stringify(estados));
+  renderTable();
+  toast('Licitación descartada');
+}
+
+// ── FILTROS ──────────────────────────────────
+function setRel(val, el) {
+  filtRel = val;
+  ['todas','alta','media','baja'].forEach(r => {
+    const c = document.getElementById('chip-rel-' + r);
+    if (c) c.classList.toggle('on', r === val);
+  });
+  renderTable();
+}
+
+function toggleEst(val, el) {
+  if (filtEst === val) {
+    filtEst = null;
+    el.classList.remove('on','on-g','on-a');
+  } else {
+    filtEst = val;
+    ['proceso','docs','adj','no'].forEach(e => {
+      const c = document.getElementById('chip-est-' + e);
+      if (c) c.classList.remove('on','on-g','on-a');
+    });
+    if (val === 'adj') el.classList.add('on-g');
+    else if (val === 'no') el.classList.add('on-a');
+    else el.classList.add('on');
+  }
+  renderTable();
+}
+
+// ── TOAST ──────────────────────────────────
+function toast(msg, tipo='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (tipo ? ' '+tipo : '');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── INIT ──────────────────────────────────
+if (sessionStorage.getItem('mp_ok') === '1') cargarLicitaciones();
+</script>
+</body>
+</html>
