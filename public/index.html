@@ -272,8 +272,7 @@ tbody td { padding: 13px 14px; font-size: 13px; vertical-align: middle; }
 <script>
 const CLAVE = 'RadarMP2026';
 const API_BASE = '/api';
-const ES_DEMO = !window.location.hostname.includes('vercel') && !window.location.hostname.includes('radar-mp');
-
+const ES_DEMO = false;
 let licitaciones = [];
 let estados = JSON.parse(localStorage.getItem('mp_estados') || '{}');
 let filtRel = 'todas';
