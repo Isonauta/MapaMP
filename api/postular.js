@@ -6,6 +6,21 @@ const EMAIL_COLABORADOR = 'corderomercado6@gmail.com';
 const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_YxNrtRsN_Dt4zcQ2fWE3EF4ndGZvQwnwe';
 const FROM = 'Radar MP <onboarding@resend.dev>';
 
+const KB_CORDERO = `
+EMPRESA: Cordero Asociados Limitada
+CONSULTOR PRINCIPAL: Cristián Cordero Placencia — Sociólogo, ~20 años experiencia, 7.000+ horas docencia, 300+ cursos, 50+ proyectos.
+EQUIPO: Evelyn Arias (Ing. Prevención de Riesgos), Claudio Jara (Ing. Comercial) + colaboradores puntuales.
+LEMA: "El Poder de la Simplicidad en la gestión organizacional"
+METODOLOGÍA: CULTURA + SISTEMAS + PERSONAS. Esquema 5 etapas: Diagnóstico → Desarrollo Documental → Auditoría Interna → Revisión Gerencial → Acompañamiento Certificación.
+
+SERVICIOS CORE: Consultoría ISO 9001/14001/45001/27001/37001, auditoría interna, capacitación ISO, liderazgo organizacional, SGI.
+CLIENTES CLAVE: ManpowerGroup, IPLACEX, PURATOS, EPIROC, VEOLIA, TAPEL, TURISTIK, PERIlogistics, Casa Moneda, ENAP.
+SECTORES: Industria, minería, logística, tecnología, educación superior, RRHH/staffing, energía, servicios ambientales.
+BASE: Santiago y Concepción. Modalidad presencial, remota o mixta.
+
+DIFERENCIADORES: Experiencia acreditada como facilitador SGS Academy, Bureau Veritas, TÜV Rheinland, AENOR. Proyectos certificados con 0 no conformidades (Transportes Bolívar). Cliente ManpowerGroup activo en Chile y Perú desde 2022.
+`;
+
 function formatMonto(m) {
   if (!m) return 'No especificado';
   return '$' + Number(m).toLocaleString('es-CL');
@@ -29,13 +44,34 @@ async function generarEstructuraOferta(licit) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: `Eres consultor experto en licitaciones públicas chilenas. Para "Cordero Asociados" (consultoría ISO 9001/14001/45001/37001, capacitación, auditorías, 11 años experiencia, base Talcahuano) genera estructura de oferta técnica en HTML simple (solo h3, p, ul, li, strong).
+        max_tokens: 1200,
+        messages: [{
+          role: 'user',
+          content: `Eres consultor experto en licitaciones públicas chilenas. Genera una estructura de oferta técnica para Cordero Asociados usando su perfil real.
 
-LICITACIÓN: ${licit.nombre} | ${licit.organismo} | Monto: ${formatMonto(licit.monto)}
-Descripción: ${licit.descripcion}
+${KB_CORDERO}
 
-Incluye: 1.Resumen ejecutivo, 2.Metodología (5 puntos), 3.Equipo y experiencia, 4.Propuesta de valor, 5.Cronograma por fases. Sé específico al tipo de servicio.` }]
+LICITACIÓN:
+- Nombre: ${licit.nombre}
+- Descripción: ${licit.descripcion}
+- Organismo: ${licit.organismo}
+- Ciudad: ${licit.ciudad}
+- Monto estimado: ${formatMonto(licit.monto)}
+- Cierre: ${formatFecha(licit.fechaCierre)}
+
+Genera la estructura en HTML simple (solo h3, p, ul, li, strong — sin CSS ni clases).
+
+Incluye estos 6 bloques, siendo MUY específico al servicio de esta licitación y usando la experiencia real de Cordero Asociados:
+
+1. RESUMEN EJECUTIVO (2 párrafos — quién es Cordero Asociados y por qué es la opción ideal para ESTE organismo)
+2. COMPRENSIÓN DEL REQUERIMIENTO (qué entiende Cordero Asociados que necesita este organismo)
+3. METODOLOGÍA PROPUESTA (5-6 etapas específicas al tipo de servicio solicitado)
+4. EQUIPO Y EXPERIENCIA RELEVANTE (menciona clientes reales similares al organismo licitante)
+5. PROPUESTA DE VALOR DIFERENCIADORA (3 puntos concretos que distinguen a Cordero Asociados)
+6. CRONOGRAMA TENTATIVO (3-4 fases con duración estimada en semanas/meses)
+
+Sé específico, no genérico. Usa los datos reales de la empresa.`
+        }]
       })
     });
     const data = await res.json();
@@ -86,15 +122,16 @@ body{font-family:Georgia,serif;background:#f8f8f6;margin:0;padding:0}
 .ficha td:first-child{color:#666;width:150px;font-family:monospace;font-size:12px}
 .ficha td:last-child{color:#1a1a18;font-weight:600}
 .btn{display:inline-block;background:#1a3a6b;color:#fff;padding:12px 28px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:bold;margin-top:8px}
+.ia-box{background:#f4f8ff;border:1px solid #c0d0e8;border-radius:6px;padding:20px 24px;font-size:14px;line-height:1.8;margin-top:20px}
+.ia-title{font-family:monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#2a5a9a;margin-bottom:12px}
 .sec{font-size:16px;color:#1a3a6b;border-bottom:2px solid #e0e8f4;padding-bottom:8px;margin:28px 0 16px}
-.box{background:#fafafa;border:1px solid #e0e0e0;border-radius:6px;padding:20px 24px;font-size:14px;line-height:1.8}
 .foot{background:#f0f0ed;padding:20px 32px;font-size:11px;color:#aaa;font-family:monospace}
 </style></head><body>
 <div class="wrap">
-<div class="hdr"><h1>⚡ Licitación para postular</h1><p>Radar MP · Cordero Asociados · ${ahora}</p></div>
+<div class="hdr"><h1>⚡ Licitación marcada para postular</h1><p>Radar MP · Cordero Asociados · ${ahora}</p></div>
 <div class="body">
 <span class="badge">✓ POSTULAR — marcado por ${marcadoPor || 'Dashboard'}</span>
-${licit.score?.esCiudadPreferida === false ? '<div class="alerta">⚠ Licitación fuera de Santiago/Concepción — verificar si el monto justifica traslado.</div>' : ''}
+${licit.score?.esCiudadPreferida === false ? '<div class="alerta">⚠ Licitación fuera de Santiago/Concepción — confirmar si el organismo cubre gastos de traslado.</div>' : ''}
 <div class="ficha"><table>
 <tr><td>Código</td><td>${licit.codigo}</td></tr>
 <tr><td>Nombre</td><td>${licit.nombre}</td></tr>
@@ -102,11 +139,29 @@ ${licit.score?.esCiudadPreferida === false ? '<div class="alerta">⚠ Licitació
 <tr><td>Ciudad / Región</td><td>${licit.ciudad} — ${licit.region}</td></tr>
 <tr><td>Monto estimado</td><td>${formatMonto(licit.monto)}</td></tr>
 <tr><td>Fecha cierre</td><td>${formatFecha(licit.fechaCierre)}</td></tr>
-<tr><td>Comisión colaborador</td><td>${comision ? '$' + comision.toLocaleString('es-CL') + ' (7%)' : 'Por definir'}</td></tr>
+<tr><td>Comisión colaborador</td><td>${comision ? '$' + comision.toLocaleString('es-CL') + ' (7%)' : 'Por definir según monto adjudicado'}</td></tr>
 </table></div>
-<a href="${licit.url}" class="btn">Ver licitación en Mercado Público →</a>
+<a href="${licit.url}" class="btn">Ver licitación completa en Mercado Público →</a>
+${licit.iaAnalisis ? `
+<div class="ia-box">
+<div class="ia-title">✦ Análisis IA — Evaluación previa</div>
+<p><strong>Recomendación:</strong> ${licit.iaAnalisis.recomendacion} (${licit.iaAnalisis.puntaje}/10)</p>
+<p><strong>Resumen:</strong> ${licit.iaAnalisis.resumen}</p>
+<p><strong>Justificación:</strong> ${licit.iaAnalisis.justificacion}</p>
+<p><strong>Servicio a ofrecer:</strong> ${licit.iaAnalisis.servicio_a_ofrecer}</p>
+${licit.iaAnalisis.requisitos_clave ? `<p><strong>Requisitos a revisar:</strong> ${licit.iaAnalisis.requisitos_clave}</p>` : ''}
+</div>` : ''}
 <h2 class="sec">📋 Tu tarea: Oferta Técnica y Económica</h2>
-<div class="box">${estructuraOferta || '<p><strong>1. Resumen ejecutivo</strong></p><p><strong>2. Metodología propuesta</strong></p><p><strong>3. Equipo y experiencia</strong></p><p><strong>4. Propuesta de valor</strong></p><p><strong>5. Cronograma</strong></p><p><strong>6. Oferta económica</strong></p>'}</div>
+<div class="ia-box">
+<div class="ia-title">✦ Estructura generada por IA — basada en tu perfil real</div>
+${estructuraOferta || `
+<h3>1. Resumen Ejecutivo</h3><p>Cordero Asociados Limitada, con ~20 años de experiencia en consultoría ISO...</p>
+<h3>2. Comprensión del Requerimiento</h3><p>Descripción del análisis del organismo...</p>
+<h3>3. Metodología Propuesta</h3><ul><li>Etapa 1: Diagnóstico</li><li>Etapa 2: Implementación</li><li>Etapa 3: Auditoría Interna</li><li>Etapa 4: Revisión Gerencial</li><li>Etapa 5: Acompañamiento</li></ul>
+<h3>4. Equipo y Experiencia</h3><p>Cristián Cordero Placencia + Evelyn Arias (SST)</p>
+<h3>5. Propuesta de Valor</h3><ul><li>Experiencia acreditada en SGS Academy y Bureau Veritas</li><li>Metodología CULTURA + SISTEMAS + PERSONAS</li><li>Clientes recurrentes en sectores similares</li></ul>
+<h3>6. Cronograma</h3><ul><li>Fase 1 (2 semanas): Diagnóstico</li><li>Fase 2 (6 semanas): Implementación</li><li>Fase 3 (2 semanas): Auditoría y cierre</li></ul>`}
+</div>
 </div>
 <div class="foot">Radar MP · Sistema automático Cordero Asociados · No responder este correo</div>
 </div></body></html>`;
@@ -137,29 +192,30 @@ body{font-family:Georgia,serif;background:#f8f8f6;margin:0;padding:0}
 .foot{background:#f0f0ed;padding:20px 32px;font-size:11px;color:#aaa;font-family:monospace}
 </style></head><body>
 <div class="wrap">
-<div class="hdr"><h1>📂 Nueva postulación — Documentación</h1><p>Radar MP · Cordero Asociados · ${ahora}</p></div>
+<div class="hdr"><h1>📂 Nueva postulación — Tu gestión</h1><p>Radar MP · Cordero Asociados · ${ahora}</p></div>
 <div class="body">
-<p style="font-size:14px;color:#555;margin-bottom:20px">Cristián ha marcado esta licitación para postular. Tu tarea es gestionar toda la documentación y subida a Mercado Público.</p>
+<p style="font-size:14px;color:#555;margin-bottom:20px">Cristián ha marcado esta licitación para postular. Tu responsabilidad es gestionar toda la documentación y subida a Mercado Público.</p>
 <div class="ficha"><table>
 <tr><td>Código</td><td>${licit.codigo}</td></tr>
 <tr><td>Nombre</td><td>${licit.nombre}</td></tr>
 <tr><td>Organismo</td><td>${licit.organismo}</td></tr>
 <tr><td>Ciudad / Región</td><td>${licit.ciudad} — ${licit.region}</td></tr>
 <tr><td>Monto estimado</td><td>${formatMonto(licit.monto)}</td></tr>
-<tr><td>Fecha cierre</td><td>${formatFecha(licit.fechaCierre)}</td></tr>
+<tr><td>Fecha cierre</td><td><strong style="color:#c04000">${formatFecha(licit.fechaCierre)}</strong></td></tr>
 </table></div>
 <a href="${licit.url}" class="btn">Ver licitación en Mercado Público →</a>
-<h2 class="sec">📋 Tu checklist de documentación</h2>
+<h2 class="sec">📋 Tu checklist</h2>
 <div class="check"><ul>
-<li>Descargar y revisar bases de licitación completas</li>
-<li>Verificar documentos habilitantes requeridos (RUT, escrituras, certificados)</li>
+<li>Descargar y leer las bases de licitación completas</li>
+<li>Identificar todos los documentos habilitantes requeridos</li>
+<li>Verificar que Cordero Asociados esté inscrita como proveedor en ChileCompra</li>
 <li>Coordinar con Cristián la oferta técnica y económica</li>
-<li>Preparar y subir todos los documentos a Mercado Público</li>
-<li>Confirmar recepción y número de postulación</li>
+<li>Preparar y subir todos los documentos a Mercado Público antes del cierre</li>
+<li>Confirmar número de postulación y enviar comprobante a Cristián</li>
 <li>Hacer seguimiento del estado en el dashboard</li>
-<li>Notificar resultado (adjudicada / no adjudicada)</li>
+<li>Notificar resultado (adjudicada / no adjudicada) y actualizar dashboard</li>
 </ul></div>
-${comision ? `<div class="comision"><span class="monto">${'$' + comision.toLocaleString('es-CL')}</span><span class="lbl">Tu comisión estimada si adjudicamos (7% del monto)</span></div>` : ''}
+${comision ? `<div class="comision"><span class="monto">${'$' + comision.toLocaleString('es-CL')}</span><span class="lbl">Tu comisión estimada si adjudicamos (7% del monto total)</span></div>` : ''}
 </div>
 <div class="foot">Radar MP · Sistema automático Cordero Asociados · No responder este correo</div>
 </div></body></html>`;
@@ -172,5 +228,5 @@ ${comision ? `<div class="comision"><span class="monto">${'$' + comision.toLocal
     return res.status(200).json({ ok: true, emails: { cristian: r1, colaborador: r2 } });
   }
 
-  return res.status(200).json({ ok: true, mensaje: 'Acción registrada sin email' });
+  return res.status(200).json({ ok: true, mensaje: 'Acción registrada' });
 }
