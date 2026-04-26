@@ -136,6 +136,97 @@ tbody td { padding: 13px 14px; font-size: 13px; vertical-align: middle; }
 .btn-no:hover { background: var(--red-light); color: var(--red); border-color: #e0a8a8; }
 .en-gestion { font-family: 'Inconsolata', monospace; font-size: 10px; color: var(--ink-light); }
 
+/* COLUMNA IA */
+.ia-cell { min-width: 160px; }
+.ia-semaforo {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Inconsolata', monospace; font-size: 10px;
+  letter-spacing: 0.5px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
+  white-space: nowrap; cursor: default;
+}
+.ia-verde  { background: var(--green-light); color: var(--green); }
+.ia-amarillo { background: var(--amber-light); color: var(--amber); }
+.ia-rojo   { background: var(--red-light); color: var(--red); }
+.ia-pending {
+  font-family: 'Inconsolata', monospace; font-size: 10px;
+  color: var(--ink-light); cursor: pointer;
+  border: 1px dashed var(--rule); border-radius: 20px;
+  padding: 3px 10px; transition: all 0.15s;
+  background: transparent;
+}
+.ia-pending:hover { border-color: var(--blue-mid); color: var(--blue-mid); }
+.ia-linea {
+  font-size: 11px; color: var(--ink-mid);
+  margin-top: 4px; line-height: 1.3;
+  max-width: 180px;
+}
+
+/* PANEL EXPANDIDO */
+.expand-row { display: none; }
+.expand-row.show { display: table-row; }
+.expand-panel {
+  background: #f4f7ff;
+  border-top: 2px solid var(--blue-light);
+  padding: 24px 28px;
+}
+.ep-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.ep-block {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 16px 18px;
+}
+.ep-block-title {
+  font-family: 'Inconsolata', monospace;
+  font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--ink-light);
+  margin-bottom: 8px;
+}
+.ep-block p { font-size: 13px; line-height: 1.6; color: var(--ink); }
+.ep-semaforo-grande {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+}
+.ep-rec {
+  font-size: 20px; font-weight: 800;
+  letter-spacing: 2px;
+}
+.ep-rec.verde  { color: var(--green); }
+.ep-rec.amarillo { color: var(--amber); }
+.ep-rec.rojo   { color: var(--red); }
+.ep-puntaje {
+  font-family: 'Inconsolata', monospace;
+  font-size: 12px; color: var(--ink-light);
+}
+.ep-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.ep-loading {
+  text-align: center; padding: 32px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 13px; color: var(--blue-mid);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-analizar-uno {
+  font-family: 'Inconsolata', monospace; font-size: 11px;
+  padding: 7px 16px; border-radius: 4px; cursor: pointer;
+  font-weight: 600; border: 1.5px solid var(--blue-mid);
+  background: var(--blue-light); color: var(--blue-mid);
+  transition: all 0.15s;
+}
+.btn-analizar-uno:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-analizar-todas {
+  font-family: 'Inconsolata', monospace; font-size: 11px;
+  padding: 6px 14px; background: var(--blue-light);
+  border: 1.5px solid #c0d0e8; border-radius: 4px;
+  color: var(--blue); cursor: pointer; transition: all 0.15s;
+}
+.btn-analizar-todas:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+
 /* ESTADO DROPDOWN */
 .est-menu { position: fixed; background: var(--paper); border: 1.5px solid var(--rule); border-radius: 6px; box-shadow: var(--shadow); z-index: 500; min-width: 180px; display: none; overflow: hidden; }
 .est-menu.show { display: block; }
@@ -221,6 +312,7 @@ tbody td { padding: 13px 14px; font-size: 13px; vertical-align: middle; }
     <div class="chip" id="chip-est-no" onclick="toggleEst('no',this)">No adjudicada</div>
     <div class="fsep"></div>
     <input type="text" class="search" id="searchInput" placeholder="Buscar nombre u organismo…" oninput="renderTable()">
+    <button class="btn-analizar-todas" id="btnAnalizarTodas" onclick="analizarTodas()">✦ Analizar con IA</button>
     <button class="btn-refresh" onclick="cargarLicitaciones()">↺ Actualizar</button>
   </div>
 
@@ -245,12 +337,13 @@ tbody td { padding: 13px 14px; font-size: 13px; vertical-align: middle; }
           <th>Monto estimado</th>
           <th>Cierre</th>
           <th>Relevancia IA</th>
+          <th>Claude dice</th>
           <th>Estado</th>
           <th>Acción</th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr class="loading-row"><td colspan="9">
+        <tr class="loading-row"><td colspan="10">
           <div class="spin-wrap"><div class="spinner"></div>Cargando licitaciones…</div>
         </td></tr>
       </tbody>
@@ -272,7 +365,8 @@ tbody td { padding: 13px 14px; font-size: 13px; vertical-align: middle; }
 <script>
 const CLAVE = 'RadarMP2026';
 const API_BASE = '/api';
-const ES_DEMO = false;
+const ES_DEMO = !window.location.hostname.includes('vercel') && !window.location.hostname.includes('radar-mp');
+
 let licitaciones = [];
 let estados = JSON.parse(localStorage.getItem('mp_estados') || '{}');
 let filtRel = 'todas';
@@ -319,7 +413,7 @@ function demoData() {
 
 // ── CARGAR ──────────────────────────────────
 async function cargarLicitaciones() {
-  document.getElementById('tableBody').innerHTML = `<tr class="loading-row"><td colspan="9"><div class="spin-wrap"><div class="spinner"></div>Cargando licitaciones…</div></td></tr>`;
+  document.getElementById('tableBody').innerHTML = `<tr class="loading-row"><td colspan="10"><div class="spin-wrap"><div class="spinner"></div>Cargando licitaciones…</div></td></tr>`;
 
   if (ES_DEMO) {
     await new Promise(r => setTimeout(r, 700));
@@ -406,7 +500,7 @@ function renderTable() {
   const tbody = document.getElementById('tableBody');
 
   if (data.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="9" style="text-align:center;padding:60px;color:var(--ink-light)"><div style="font-size:36px;margin-bottom:12px;opacity:0.3">🔍</div><div style="font-family:'Inconsolata',monospace;font-size:13px">Sin licitaciones con estos filtros</div></td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10" style="text-align:center;padding:60px;color:var(--ink-light)"><div style="font-size:36px;margin-bottom:12px;opacity:0.3">🔍</div><div style="font-family:'Inconsolata',monospace;font-size:13px">Sin licitaciones con estos filtros</div></td></tr>`;
     return;
   }
 
@@ -418,22 +512,95 @@ function renderTable() {
     const relLbl = rel === 'alta' ? '▲ ALTA' : rel === 'media' ? '◆ MEDIA' : '◇ BAJA';
     const pref = l.score.esCiudadPreferida;
     const yaGest = ['proceso','docs','adj','no'].includes(est);
+    const ia = l.iaAnalisis;
+    const expandido = expandedRow === l.id;
 
-    return `<tr>
+    // Celda IA
+    let iaCelda = '';
+    if (ia) {
+      const cls = ia.color === 'verde' ? 'ia-verde' : ia.color === 'amarillo' ? 'ia-amarillo' : 'ia-rojo';
+      const icon = ia.color === 'verde' ? '🟢' : ia.color === 'amarillo' ? '🟡' : '🔴';
+      iaCelda = `<div class="ia-semaforo ${cls}">${icon} ${ia.recomendacion}</div>
+        <div class="ia-linea">${ia.resumen ? ia.resumen.substring(0,70)+'…' : ''}</div>`;
+    } else if (rel === 'alta') {
+      iaCelda = `<button class="ia-pending" onclick="event.stopPropagation();analizarUna(${l.id})">✦ Analizar</button>`;
+    } else {
+      iaCelda = `<span style="font-family:monospace;font-size:10px;color:var(--ink-light)">—</span>`;
+    }
+
+    // Panel expandido
+    let panelHtml = '';
+    if (expandido) {
+      if (!ia && l._analizando) {
+        panelHtml = `<tr class="expand-row show" id="expand-${l.id}"><td colspan="10">
+          <div class="expand-panel"><div class="ep-loading"><div class="spinner"></div>Claude analizando esta licitación…</div></div>
+        </td></tr>`;
+      } else if (ia) {
+        const recCls = ia.color || 'verde';
+        panelHtml = `<tr class="expand-row show" id="expand-${l.id}"><td colspan="10">
+          <div class="expand-panel">
+            <div class="ep-semaforo-grande">
+              <span class="ep-rec ${recCls}">${ia.color==='verde'?'🟢':ia.color==='amarillo'?'🟡':'🔴'} ${ia.recomendacion}</span>
+              <span class="ep-puntaje">Puntaje: ${ia.puntaje}/10</span>
+            </div>
+            <div class="ep-grid">
+              <div class="ep-block">
+                <div class="ep-block-title">Qué pide esta licitación</div>
+                <p>${ia.resumen || '—'}</p>
+              </div>
+              <div class="ep-block">
+                <div class="ep-block-title">Por qué sí / no para Cordero Asociados</div>
+                <p>${ia.justificacion || '—'}</p>
+              </div>
+              <div class="ep-block">
+                <div class="ep-block-title">Servicio a ofrecer</div>
+                <p>${ia.servicio_a_ofrecer || '—'}</p>
+              </div>
+              <div class="ep-block">
+                <div class="ep-block-title">Requisitos a revisar</div>
+                <p>${ia.requisitos_clave || 'Sin alertas identificadas'}</p>
+              </div>
+            </div>
+            <div class="ep-actions">
+              ${!yaGest ? `<button class="btn-p btn-si" onclick="postular(${l.id})">✓ Postular ahora</button>
+              <button class="btn-p btn-no" onclick="descartar(${l.id})">✕ Descartar</button>` : `<span class="en-gestion">En gestión</span>`}
+              <a href="${l.url}" target="_blank"><button class="btn-analizar-uno">🔗 Ver en Mercado Público</button></a>
+            </div>
+          </div>
+        </td></tr>`;
+      } else {
+        panelHtml = `<tr class="expand-row show" id="expand-${l.id}"><td colspan="10">
+          <div class="expand-panel">
+            <div style="text-align:center;padding:20px">
+              <button class="btn-analizar-uno" onclick="analizarUna(${l.id})">✦ Analizar esta licitación con Claude</button>
+              <p style="font-family:monospace;font-size:11px;color:var(--ink-light);margin-top:8px">Claude evaluará si es viable para Cordero Asociados</p>
+            </div>
+            <div class="ep-actions" style="justify-content:center;margin-top:0">
+              ${!yaGest ? `<button class="btn-p btn-si" onclick="postular(${l.id})">✓ Postular</button>
+              <button class="btn-p btn-no" onclick="descartar(${l.id})">✕ Descartar</button>` : `<span class="en-gestion">En gestión</span>`}
+              <a href="${l.url}" target="_blank"><button class="btn-analizar-uno">🔗 Ver en MP</button></a>
+            </div>
+          </div>
+        </td></tr>`;
+      }
+    }
+
+    return `<tr style="cursor:pointer" onclick="toggleRow(${l.id})">
       <td class="td-code">${l.codigo}</td>
-      <td class="td-name"><a href="${l.url}" target="_blank" title="${l.nombre}">${l.nombre.length > 65 ? l.nombre.substring(0,62)+'…' : l.nombre}</a></td>
+      <td class="td-name" title="${l.nombre}">${l.nombre.length > 60 ? l.nombre.substring(0,57)+'…' : l.nombre}</td>
       <td class="td-org">${l.organismo}</td>
       <td class="td-city">${l.ciudad}${pref ? ' <span class="city-pref" title="Ciudad prioritaria">★</span>' : ''}</td>
       <td class="td-monto">${fmonto(l.monto)}</td>
       <td class="td-fecha">${ffecha(l.fechaCierre)}</td>
       <td><span class="rel-b ${relCls}">${relLbl}</span></td>
-      <td><span class="est-b ${estCfg.c}" onclick="abrirMenu(event,${l.id})">${estCfg.l}</span></td>
-      <td class="td-actions">
+      <td class="ia-cell">${iaCelda}</td>
+      <td><span class="est-b ${estCfg.c}" onclick="event.stopPropagation();abrirMenu(event,${l.id})">${estCfg.l}</span></td>
+      <td class="td-actions" onclick="event.stopPropagation()">
         ${!yaGest
           ? `<button class="btn-p btn-si" onclick="postular(${l.id})">✓ Postular</button><button class="btn-p btn-no" onclick="descartar(${l.id})" title="Descartar">✕</button>`
           : `<span class="en-gestion">En gestión</span>`}
       </td>
-    </tr>`;
+    </tr>${panelHtml}`;
   }).join('');
 }
 
@@ -528,6 +695,72 @@ function toast(msg, tipo='') {
   t.textContent = msg;
   t.className = 'toast show' + (tipo ? ' '+tipo : '');
   setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+
+// ── EXPAND ROW ──────────────────────────────────
+let expandedRow = null;
+
+function toggleRow(id) {
+  expandedRow = expandedRow === id ? null : id;
+  renderTable();
+}
+
+// ── ANALIZAR UNA ──────────────────────────────────
+async function analizarUna(id) {
+  const l = licitaciones.find(x => x.id === id);
+  if (!l) return;
+  l._analizando = true;
+  expandedRow = id;
+  renderTable();
+  const analisis = await llamarClaudeAnalisis(l);
+  l.iaAnalisis = analisis;
+  l._analizando = false;
+  renderTable();
+}
+
+// ── ANALIZAR TODAS ──────────────────────────────────
+async function analizarTodas() {
+  const btn = document.getElementById('btnAnalizarTodas');
+  const altas = licitaciones.filter(l => l.score.nivel === 'alta' && !l.iaAnalisis);
+  if (altas.length === 0) { toast('Todas las licitaciones de alta relevancia ya fueron analizadas', 'ok'); return; }
+  btn.textContent = `⟳ Analizando 0/${altas.length}…`;
+  btn.disabled = true;
+  for (let i = 0; i < altas.length; i++) {
+    const l = altas[i];
+    l._analizando = true;
+    renderTable();
+    l.iaAnalisis = await llamarClaudeAnalisis(l);
+    l._analizando = false;
+    btn.textContent = `⟳ Analizando ${i+1}/${altas.length}…`;
+    renderTable();
+    await new Promise(r => setTimeout(r, 600));
+  }
+  btn.textContent = '✦ Analizar con IA';
+  btn.disabled = false;
+  toast(`✓ ${altas.length} licitaciones analizadas`, 'ok');
+}
+
+// ── LLAMAR CLAUDE ANÁLISIS ──────────────────────────────────
+async function llamarClaudeAnalisis(l) {
+  if (ES_DEMO) {
+    await new Promise(r => setTimeout(r, 1200));
+    const demos = [
+      { recomendacion:'POSTULAR', color:'verde', puntaje:9, resumen:'Consultoría en sistema de gestión ISO para organismo industrial.', justificacion:'Cordero Asociados tiene experiencia directa en este tipo de servicio con clientes como EPIROC y PURATOS. El perfil del organismo es afín al portafolio.', servicio_a_ofrecer:'Consultoría e implementación ISO con metodología CULTURA+SISTEMAS+PERSONAS.', requisitos_clave:'Verificar si exigen boleta de garantía o historial de contratos públicos.', alerta_ciudad: false },
+      { recomendacion:'EVALUAR', color:'amarillo', puntaje:6, resumen:'Capacitación en gestión para organismo de sector no habitual.', justificacion:'El servicio es afín pero el sector requiere verificación. No hay historial documentado con este tipo de organismo.', servicio_a_ofrecer:'Talleres de capacitación y formación de auditores internos.', requisitos_clave:'Confirmar si el organismo requiere experiencia específica en el sector.', alerta_ciudad: false },
+      { recomendacion:'DESCARTAR', color:'rojo', puntaje:2, resumen:'Servicio completamente fuera del portafolio de Cordero Asociados.', justificacion:'La licitación no corresponde a ningún servicio del portafolio. Postular implicaría competir sin experiencia relevante.', servicio_a_ofrecer:'No aplica.', requisitos_clave:'N/A', alerta_ciudad: false },
+    ];
+    if (l.score.nivel === 'alta') return demos[0];
+    if (l.score.nivel === 'media') return demos[1];
+    return demos[2];
+  }
+  try {
+    const r = await fetch(`${API_BASE}/licitaciones?analizar=true&codigo=${l.codigo}`);
+    const d = await r.json();
+    const found = d.licitaciones?.find(x => x.codigo === l.codigo);
+    if (found?.iaAnalisis) return found.iaAnalisis;
+    return null;
+  } catch(e) { return null; }
 }
 
 // ── INIT ──────────────────────────────────
