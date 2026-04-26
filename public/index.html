@@ -312,7 +312,7 @@ tbody td { padding: 13px 14px; font-size: 13px; vertical-align: middle; }
     <div class="chip" id="chip-est-no" onclick="toggleEst('no',this)">No adjudicada</div>
     <div class="fsep"></div>
     <input type="text" class="search" id="searchInput" placeholder="Buscar nombre u organismo…" oninput="renderTable()">
-    <button class="btn-analizar-todas" id="btnAnalizarTodas" onclick="analizarTodas()">✦ Analizar con IA</button>
+    <button class="btn-analizar-todas" id="btnAnalizarTodas" onclick="analizarTodas()">✦ Analizar con Claudia</button>
     <button class="btn-refresh" onclick="cargarLicitaciones()">↺ Actualizar</button>
   </div>
 
@@ -337,7 +337,7 @@ tbody td { padding: 13px 14px; font-size: 13px; vertical-align: middle; }
           <th>Monto estimado</th>
           <th>Cierre</th>
           <th>Relevancia IA</th>
-          <th>Claude dice</th>
+          <th>Claudia dice</th>
           <th>Estado</th>
           <th>Acción</th>
         </tr>
@@ -523,7 +523,7 @@ function renderTable() {
       iaCelda = `<div class="ia-semaforo ${cls}">${icon} ${ia.recomendacion}</div>
         <div class="ia-linea">${ia.resumen ? ia.resumen.substring(0,70)+'…' : ''}</div>`;
     } else if (rel === 'alta') {
-      iaCelda = `<button class="ia-pending" onclick="event.stopPropagation();analizarUna(${l.id})">✦ Analizar</button>`;
+      iaCelda = `<button class="ia-pending" onclick="event.stopPropagation();analizarUna(${l.id})">✦ Claudia</button>`;
     } else {
       iaCelda = `<span style="font-family:monospace;font-size:10px;color:var(--ink-light)">—</span>`;
     }
@@ -533,7 +533,7 @@ function renderTable() {
     if (expandido) {
       if (!ia && l._analizando) {
         panelHtml = `<tr class="expand-row show" id="expand-${l.id}"><td colspan="10">
-          <div class="expand-panel"><div class="ep-loading"><div class="spinner"></div>Claude analizando esta licitación…</div></div>
+          <div class="expand-panel"><div class="ep-loading"><div class="spinner"></div>Claudia analizando esta licitación…</div></div>
         </td></tr>`;
       } else if (ia) {
         const recCls = ia.color || 'verde';
@@ -572,8 +572,8 @@ function renderTable() {
         panelHtml = `<tr class="expand-row show" id="expand-${l.id}"><td colspan="10">
           <div class="expand-panel">
             <div style="text-align:center;padding:20px">
-              <button class="btn-analizar-uno" onclick="analizarUna(${l.id})">✦ Analizar esta licitación con Claude</button>
-              <p style="font-family:monospace;font-size:11px;color:var(--ink-light);margin-top:8px">Claude evaluará si es viable para Cordero Asociados</p>
+              <button class="btn-analizar-uno" onclick="analizarUna(${l.id})">✦ Analizar con Claudia</button>
+              <p style="font-family:monospace;font-size:11px;color:var(--ink-light);margin-top:8px">Claudia evaluará si es viable para Cordero Asociados</p>
             </div>
             <div class="ep-actions" style="justify-content:center;margin-top:0">
               ${!yaGest ? `<button class="btn-p btn-si" onclick="postular(${l.id})">✓ Postular</button>
@@ -736,9 +736,9 @@ async function analizarTodas() {
     renderTable();
     await new Promise(r => setTimeout(r, 600));
   }
-  btn.textContent = '✦ Analizar con IA';
+  btn.textContent = '✦ Analizar con Claudia';
   btn.disabled = false;
-  toast(`✓ ${altas.length} licitaciones analizadas`, 'ok');
+  toast(`✓ ${altas.length} licitaciones analizadas por Claudia`, 'ok');
 }
 
 // ── LLAMAR CLAUDE ANÁLISIS ──────────────────────────────────
