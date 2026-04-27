@@ -57,21 +57,29 @@ ${KB_CORDERO}
 LICITACIÓN:
 - Código: ${licit.codigo}
 - Nombre: ${licit.nombre}
-- Descripción: ${licit.descripcion || 'No disponible'}
-- Organismo: ${licit.organismo}
+- Descripción: ${licit.descripcion || 'NO DISPONIBLE — solo hay nombre de la licitación'}
+- Organismo: ${licit.organismo || 'NO DISPONIBLE'}
 - Ciudad/Región: ${licit.ciudad} — ${licit.region}
 - Monto: ${licit.monto ? '$' + Number(licit.monto).toLocaleString('es-CL') : 'No publicado'}
 - Cierre: ${licit.fechaCierre || '—'}
 
-Responde SOLO en JSON sin markdown ni explicaciones adicionales:
+REGLAS CRÍTICAS:
+1. Si la descripción dice "NO DISPONIBLE", NO asumas el contenido temático. El nombre solo no es suficiente.
+2. Si el organismo es desconocido, no puedes saber si es municipio u hospital público — eso es crítico para el descarte.
+3. Sin información suficiente, la recomendación SIEMPRE debe ser "EVALUAR" con color "amarillo".
+4. En "servicio_a_ofrecer": solo escribe el servicio si la descripción lo confirma. Si no hay descripción escribe "Verificar bases en MP antes de proponer servicio".
+5. En "resumen": si no hay descripción di "Sin descripción disponible — revisar bases en Mercado Público".
+6. NUNCA inventes el contenido temático de una capacitación o consultoría si no está descrito.
+
+Responde SOLO en JSON sin markdown:
 {
   "recomendacion": "POSTULAR" | "EVALUAR" | "DESCARTAR",
   "color": "verde" | "amarillo" | "rojo",
   "puntaje": número 1-10,
-  "resumen": "1 oración corta: qué pide exactamente esta licitación",
-  "justificacion": "2 oraciones: por qué sí o no para Cordero Asociados específicamente",
-  "servicio_a_ofrecer": "Qué servicio concreto ofrecería Cristián Cordero",
-  "requisitos_clave": "Requisitos que podrían ser desafíos",
+  "resumen": "qué pide según información disponible, o aviso de sin descripción",
+  "justificacion": "2 oraciones honestas: por qué sí, no, o por qué no se puede determinar sin más info",
+  "servicio_a_ofrecer": "servicio concreto si descripción lo confirma, o indicación de verificar bases",
+  "requisitos_clave": "requisitos identificados o indicación de revisar bases",
   "alerta_ciudad": true o false
 }`
         }]
