@@ -587,7 +587,7 @@ function renderTable() {
 
     return `<tr style="cursor:pointer" onclick="toggleRow(${l.id})">
       <td class="td-code">${l.codigo}</td>
-      <td class="td-name" title="${l.nombre}">${l.nombre.length > 60 ? l.nombre.substring(0,57)+'…' : l.nombre}</td>
+      <td class="td-name"><a href="${l.url}" target="_blank" onclick="event.stopPropagation()" title="${l.nombre}">${l.nombre.length > 75 ? l.nombre.substring(0,72)+'…' : l.nombre}</a></td>
       <td class="td-org">${l.organismo}</td>
       <td class="td-city">${l.ciudad}${pref ? ' <span class="city-pref" title="Ciudad prioritaria">★</span>' : ''}</td>
       <td class="td-monto">${fmonto(l.monto)}</td>
@@ -745,22 +745,26 @@ async function analizarTodas() {
 async function llamarClaudeAnalisis(l) {
   if (ES_DEMO) {
     await new Promise(r => setTimeout(r, 1200));
-    const demos = [
-      { recomendacion:'POSTULAR', color:'verde', puntaje:9, resumen:'Consultoría en sistema de gestión ISO para organismo industrial.', justificacion:'Cordero Asociados tiene experiencia directa en este tipo de servicio con clientes como EPIROC y PURATOS. El perfil del organismo es afín al portafolio.', servicio_a_ofrecer:'Consultoría e implementación ISO con metodología CULTURA+SISTEMAS+PERSONAS.', requisitos_clave:'Verificar si exigen boleta de garantía o historial de contratos públicos.', alerta_ciudad: false },
-      { recomendacion:'EVALUAR', color:'amarillo', puntaje:6, resumen:'Capacitación en gestión para organismo de sector no habitual.', justificacion:'El servicio es afín pero el sector requiere verificación. No hay historial documentado con este tipo de organismo.', servicio_a_ofrecer:'Talleres de capacitación y formación de auditores internos.', requisitos_clave:'Confirmar si el organismo requiere experiencia específica en el sector.', alerta_ciudad: false },
-      { recomendacion:'DESCARTAR', color:'rojo', puntaje:2, resumen:'Servicio completamente fuera del portafolio de Cordero Asociados.', justificacion:'La licitación no corresponde a ningún servicio del portafolio. Postular implicaría competir sin experiencia relevante.', servicio_a_ofrecer:'No aplica.', requisitos_clave:'N/A', alerta_ciudad: false },
-    ];
-    if (l.score.nivel === 'alta') return demos[0];
-    if (l.score.nivel === 'media') return demos[1];
-    return demos[2];
+    const demos = {
+      alta: { recomendacion:'POSTULAR', color:'verde', puntaje:9, resumen:'Consultoría ISO para organismo con perfil afín a Cordero Asociados.', justificacion:'Cordero Asociados tiene experiencia directa en este tipo de servicio con clientes como EPIROC y PURATOS. El perfil del organismo es compatible con el portafolio.', servicio_a_ofrecer:'Consultoría e implementación ISO con metodología CULTURA+SISTEMAS+PERSONAS.', requisitos_clave:'Verificar si exigen boleta de garantía o historial de contratos públicos.', alerta_ciudad: false },
+      media: { recomendacion:'EVALUAR', color:'amarillo', puntaje:6, resumen:'Capacitación en gestión para organismo de sector no habitual.', justificacion:'El servicio es afín pero el sector requiere verificación. No hay historial documentado con este tipo de organismo.', servicio_a_ofrecer:'Talleres de capacitación y formación de auditores internos.', requisitos_clave:'Confirmar si el organismo requiere experiencia específica en el sector.', alerta_ciudad: false },
+      baja: { recomendacion:'DESCARTAR', color:'rojo', puntaje:2, resumen:'Servicio fuera del portafolio de Cordero Asociados.', justificacion:'La licitación no corresponde a ningún servicio del portafolio. Postular implicaría competir sin experiencia relevante.', servicio_a_ofrecer:'No aplica.', requisitos_clave:'N/A', alerta_ciudad: false }
+    };
+    return demos[l.score.nivel] || demos.baja;
   }
   try {
-    const r = await fetch(`${API_BASE}/licitaciones?analizar=true&codigo=${l.codigo}`);
+    const r = await fetch(`${API_BASE}/analizar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ licit: l })
+    });
     const d = await r.json();
-    const found = d.licitaciones?.find(x => x.codigo === l.codigo);
-    if (found?.iaAnalisis) return found.iaAnalisis;
+    if (d.ok && d.analisis) return d.analisis;
     return null;
-  } catch(e) { return null; }
+  } catch(e) {
+    console.log('Error Claudia:', e.message);
+    return null;
+  }
 }
 
 // ── INIT ──────────────────────────────────
