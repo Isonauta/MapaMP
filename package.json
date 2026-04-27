@@ -1,6 +1,7 @@
 {
   "name": "radar-mp",
   "version": "1.0.0",
+  "type": "module",
   "description": "Dashboard Mercado Público - Cordero Asociados",
   "dependencies": {
     "node-fetch": "^3.3.2"
